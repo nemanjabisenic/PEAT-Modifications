@@ -25,3 +25,5 @@
 <h5>Tool Structure</h5>
 <p>PEAT is a fairly lightweight toolbox designed to run on user-supplied data. Python code in the repository beginning with a capital letter (e.g.CreateTimeMap.py) contain the top-level code for each tool. Code beginning with a small letter (e.g. makePopulationLines.py) contain functions called by the top-level code.</p>
 
+<p>The repository now also includes a Python toolbox, <code>PEAT_Toolbox.pyt</code>, that aggregates the core PEAT scripts into a single ArcGIS Pro-ready toolbox. Add this file to your ArcGIS Pro project to access the full suite of preprocessing, modeling, and visualization tools without importing multiple script tools individually.</p>
+
