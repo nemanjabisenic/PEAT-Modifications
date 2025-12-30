@@ -17,7 +17,7 @@ from its authorized or unauthorized use.
 """
 import os, traceback, csv, re
 import arcpy
-import PEATutil.PEATnames as names
+from . import PEATnames as names
 
 class JustExit( Exception ): pass
 
