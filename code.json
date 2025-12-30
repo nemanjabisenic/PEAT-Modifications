@@ -1,0 +1,47 @@
+[
+    {
+      "name": "PEAT",
+      "organization": "U.S. Geological Survey",
+      "description": "Pedestrian Evacuation Analyst Toolbox",
+      "version": "v2.0.0",
+      "status": "Production",
+  
+      "permissions": {
+        "usageType": "governmentWideReuse",
+        "licenses": [
+          {
+            "name": "Public Domain",
+            "URL": "https://code.usgs.gov/western-geographic-science-center-public/peat-pedestrian-evacuation-analyst-tool/-/raw/v2.0.0/LICENSE.md"
+          }
+        ]
+      },
+  
+      "homepageURL": "https://code.usgs.gov/western-geographic-science-center-public/peat-pedestrian-evacuation-analyst-tool",
+      "downloadURL": "https://code.usgs.gov/western-geographic-science-center-public/peat-pedestrian-evacuation-analyst-tool/-/archive/v2.0.0/peat-tools-v2.0.0.zip",
+      "disclaimerURL": "https://code.usgs.gov/western-geographic-science-center-public/peat-pedestrian-evacuation-analyst-tool/-/raw/v2.0.0/DISCLAIMER.md",
+      "repositoryURL": "https://code.usgs.gov/western-geographic-science-center-public/peat-pedestrian-evacuation-analyst-tool.git",
+      "vcs": "git",
+  
+      "laborHours": 0,
+  
+      "tags": [
+        "evacuation",
+        "natural hazard"
+      ],
+  
+      "languages": [
+        "Python"
+      ],
+  
+      "contact": {
+        "name": "Jeanne Jones",
+        "email": "jmjones@usgs.gov"
+      },
+  
+      "date": {
+        "metadataLastUpdated": "2024-04-17"
+      }
+    }
+  ]
+  
+  
