@@ -1,0 +1,7 @@
+name,speed,description
+Fast walk,1.52,5 ft/sec
+Average walk,1.22,4 ft/sec
+Slow walk,0.91,3 ft/sec
+Fast run,3.85,6-minute mile
+Average run,2.68,10-minute mile
+Slow run,1.79,15-minute mile

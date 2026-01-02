@@ -1,0 +1,342 @@
+PEAT TOOL INFORMATION WINDOWS
+
+TOOLBOX
+
+Title: Pedestrian Evacuation Analyst Tools
+
+Tags: PEAT, evacuation, pedestrian, hazard
+
+Summary: The Pedestrian Evacuation Analyst tools are designed to aid practitioners and researchers studying pedestrian,
+self-initiated evacuation from sudden-onset hazards, such as local tsunamis, debris flows, lahars (volcanic mudflows),
+and flash floods.  Detailed analysis of evacuation potential requires a large amount of high-resolution data and
+multiple processing steps.  The tools aim to simplify this process by managing the data files and providing an orderly
+path through the processing.
+
+Description: The toolbox is composed of 4 sections: Preprocessing, Time and Speed Maps, Basins, and Utilities.
+The preprocessing steps prepare the elevation, study area, safe zone, and land cover data for evacuation processing.
+The Time and Speed Maps contain the steps to create evacuation surfaces and time maps.  Optionally, there are tools
+to create speed maps and additional time maps incorporating the locations of possible vertical evacuation structures.
+The Basin step creates possible evacuation flow lines and watersheds for visualization of evacuee movement. The Utilities
+section contains a convenience tool to delete all files related to a specific scenario, including the Basin scenario.
+
+Credits: U.S. Geological Survey
+
+Use Limitation:
+These tools have been approved for release by the U.S. Geological Survey (USGS). Although the software has been
+subjected to rigorous review, the USGS reserves the right to update the software as needed pursuant to further analysis
+and review. No warranty, expressed or implied, is made by the USGS or the U.S. Government as to the functionality of the
+software and related material nor shall the fact of release constitute any such warranty. Furthermore, the software is
+released on condition that neither the USGS nor the U.S. Government shall be held liable for any damages resulting from
+its authorized or unauthorized use.
+
+INDIVIDUAL TOOLS
+
+################################
+# Preprocess DEM
+################################
+
+Title: Step 1a: Preprocess DEM
+
+Tags: PEAT, evacuation, pedestrian, hazard
+
+Summary: This tool preprocesses the digital elevation model (DEM) and the project study area in preparation for
+evacuation modeling.  This preprocessing includes creating a dem and study area in the project geodatabase (gdb).
+If an optional study area is not provided, the input dem is copied into the project gdb and the outline of the dem
+is used to create the study area raster and feature class in the gdb.  If a study area is provided, the study area
+is projected to match the dem (if the projections are different) and the dem is then masked by the study area and
+moved into the project gdb.  The input study area file is used to create the study area raster and polygon files
+in the project gdb.
+
+Usage: This tool is part of the PEAT preprocessing, preparing the DEM and the study area for evacuation modeling.
+Run this tool first when preparing a new project geodatabase.
+
+ingdb: Set this parameter to a geodatabase created for the current project
+
+elevation: Set this parameter to a digital elevation model (DEM) in raster form
+
+study area: This is an optional parameter.  Set it to the polygon feature class outlining the study area for the
+current project.  If not set, the study area is defined by the outline of the DEM.
+
+################################
+# Preprocess Hazard
+################################
+
+Title: Step 1b: Preprocess Hazard
+
+Tags: PEAT, evacuation, pedestrian, hazard
+
+Summary: This tool preprocesses the hazard polygon outline against the study area to extract safe zone locations.
+A preliminary safe zone layer, labeled "prelim_safe_zone", is created and added to the Table of Contents pane.
+These preliminary safe zone locations require manual screening using standard ArcPro editing tools to eliminate
+slivers that result from the processing.  Any incorrect features left in a final safe zone layer will be interpreted
+as places for evacuees to exit the hazard zone and be safe.
+
+Usage: This tool is an optional part of the PEAT preprocessing, used in cases where a safe zone is created from the
+hazard zone and study area.  In this case, the hazard zone is first clipped by the study area and then erased from
+the study area. The safe zone is the source location for the evacuation modeling and needed in other PEAT tools.  After
+using this tool, the preliminary safe zone needs careful manual screening for invalid locations.
+
+ingdb: Set this parameter to a geodatabase created for the current project
+
+hazard: Set this parameter to a polygon feature class delineating the hazard zone or zones in the study area
+
+################################
+# Preprocess Safezone
+################################
+
+Title: Step 1c: Preprocess Safezone
+
+Tags: PEAT, evacuation, pedestrian, hazard
+
+Summary: This tool preprocesses the user-verified safe zone and stores it in the project geodatabase for use in
+later evacuation modeling.  No new layers are created.  The preprocessing includes checking the projection,
+clipping by the study area, and storing a polygon and raster version of the safe zone in the project geodatabase.
+
+Usage: This tool is part of the PEAT preprocessing, checking the projection of the input safe zone and clipping it to
+the study area.  This safe zone is then stored in the project gdb for use in other PEAT tools.
+
+ingdb: Set this parameter to a geodatabase created for the current project
+
+safezone: Set this parameter to a verified safe zone feature class.  This layer could either be the screened and edited
+output of the Preprocess Hazard tool, or a known safe zone from another source.
+
+
+################################
+# Preprocess Landcover
+################################
+
+Title: Step 1d: Preprocess Landcover
+
+Tags: PEAT, evacuation, pedestrian, hazard
+
+Summary: This tool preprocesses the various input landcover layers to create the cost inverse raster for use by the
+Create Evacuation Surfaces tool.  Each input layer is merged on top of the previous layer(s) according to processing
+order, with the base landcover layer as the starting layer.  A new file called "lc_cost_inverse_<landcover scenario name>"
+is created by this step and is added to the Table of Contents pane.  Values in the resulting raster are best shown as
+unique values using standard ArcPro symbology tools.  Lower values denote easier travel routes for evacuees.
+For example, roads will have a lc_cost_inverse value of 1.0.
+
+Usage: This tool is part of the PEAT preprocessing, assembling the various input land cover layers into a single
+raster and creating the cost inverse raster. Each input layer is merged on top of the previous layer(s) according
+to the processing order, with the base landcover layer as the starting layer.
+
+ingdb: Set this parameter to a geodatabase created for the current project.
+
+lc_scenario: Use this parameter to assign a unique name to cost inverse raster that is created.  This name will be
+appended to the end of the cost inverse raster and time maps that are generated using this cost inverse raster. Use only
+letters, numbers, and the underscore "_" character for the name that will be appended to 'lc_cost_inverse'.
+
+base_layer: Set this parameter to a raster or polygon feature class representing the landcover in the study area.  In
+the case of a 'roads only' evacuation modeling, use a layer representing the roads in the study area.
+
+base_field: Set this parameter to the field in the attribute table of the base layer that represents the different
+land cover classes.  This field can contain be of type Integer (Short or Long) or Text (String).
+
+base_values: Select each value from the base field in a different row and enter an appropriate Speed Conservation
+Value (SCV).  The list shows some example SCV values:
+             •	Water: 0.0
+             •	Buildings: 0.0
+             •	Sand or wetlands: 0.5556
+             •	Heavy brush: 0.6667
+             •	Light brush: 0.8333
+             •	Developed: 0.9091
+             •	Roads: 1.0
+
+feat_layers: Add additional landcover feature classes by selecting the file name, the order to merge the layer, and
+an appropriate SCV value.
+
+ras_layers: Add additional landcover rasters by selecting the file name, the order to merge the layer, and
+an appropriate SCV value.
+
+
+################################
+# Create Evacuation Surfaces
+################################
+
+Title: Step 2a: Create Evacuation Surfaces
+
+Tags: PEAT, evacuation, pedestrian, hazard
+
+Summary: This tool runs the Spatial Analyst Distance Accumulation tool and creates an evacuation surface showing
+travel time in minutes.  The DEM, safe zone, and cost inverse raster are inputs to the tool, which calculates the
+path distance from every cell in the hazard zone to the nearest cell in the safe zone.  The travel speed is then
+used to create a travel surface in minutes. A floating-point raster grid showing pedestrian travel time out of the
+hazard zone in minutes will be created and added to the Table of Contents pane for each travel speed selected by
+the user. Raster grids are named as “evac_surface_<landcover scenario name>_<travel speed>.” This raster grid may
+include extraneous travel times because of unrealistic landscape conditions. In the next step, users can cap the
+maximum time value in a final time map.
+
+Usage: This tool runs the core processing of the Pedestrian Evacuation Analyst. The DEM, safe zone, and cost
+inverse raster are inputs to the Esri Distance Accumulation tool, which calculates the path distance from every cell
+in the hazard zone to the nearest tool in the safe zone.  The travel speed is then used to create a travel surface
+in minutes.
+
+ingdb: Set this parameter to a geodatabase created for the current project.
+
+lc_scenario: Set this parameter to the scenario name used to identify the cost inverse raster for processing.
+
+Speed values: Enter a travel speed value as a decimal number.  Each  travel speed value added to the list will
+be used to generate a new evacuation surface.  The list below shows some example travel speeds.
+              •	Impaired walk: 0.89
+              •	Slow walk: 1.2
+              •	Fast walk: 1.52
+              •	Slow run: 1.79
+              •	Fast run: 3.85
+
+#################################
+# Check for Time Outliers
+################################
+
+Title: Step 2b (optional): Check for Time Outliers
+
+Tags: PEAT, evacuation, pedestrian, hazard
+
+Summary: This optional tool is available for evacuation surfaces that include extraneous travel times because of
+unrealistic landscape conditions.  These unusual travel times will appear in the raster's histogram of values as
+outliers from the typical range of time values.  To remove these outliers, select the evacuation surface and enter
+a maximum realistic travel time.  The evacuation surface will be reclassified to cap all outliers to the maximum
+travel time entered.
+
+Usage: Use this tool to cap any unrealistic travel times to the maximum value entered.
+
+ingdb: Set this parameter to a geodatabase created for the current project.
+
+lc_scenario: Set this parameter to the scenario name used when creating the evacuation surfaces.
+
+evacs: Use this parameter to select any evacuation surface that needs to have unusually large travel times reclassified
+to some more reasonable limit. Select a surface name and then enter a maximum realistic travel time in minutes.
+
+
+################################
+# Create Time Maps
+################################
+
+Title: Step 2c: Create Time Maps
+
+Tags: PEAT, evacuation, pedestrian, hazard
+
+Summary: This tool converts the floating-point, evacuation surfaces into integer time maps at 1-minute intervals in
+both raster and vector form.  If building outlines are entered, the time maps are generated with the building
+footprints filled in with surrounding values.
+
+Usage: Takes the evacuation surface(s) and screens for maximum values if needed. Then the surfaces are converted
+to integer values at 1-minute increments and saved as both raster and vector. If building outlines are entered as well,
+a second set of time maps are generated with the building footprints filled in with surrounding values.
+
+ingdb: Set this parameter to a geodatabase created for the current project.
+
+lc_scenario: Set this parameter to the scenario name used to identify the evacuation surface(s) for processing.
+
+evacs: Select one or more evacuation surfaces to process into time maps.
+
+buildings: Set this optional parameter to a polygon feature class of building footprints if the feature class was
+used during landcover preprocessing.  If added, the building footprints will be filled in with surrounding values
+in the time map to create a smooth surface.  This may aid population processing.
+
+
+################################
+# Create Speed Maps
+################################
+
+Title: Step 2e (optional): Create Speed Maps
+
+Tags: PEAT, evacuation, pedestrian, hazard
+
+Summary: This tool creates speed maps showing the locations where successful evacuation is likely at a given travel
+speed based on multiple time maps and  factoring in event arrival time and travel delay. The user will supply an
+event-arrival time (in minutes) and can optionally add an evacuation-delay estimate (in minutes). The final speed
+map will be named “speed_map_<raster or vector>_<land cover scenario name>_<arrival time>_<departure delay>.”
+
+Usage: Takes the selected time maps and creates one speed map showing the locations where successful evacuation is
+likely at a given travel speed. The event arrival time is used as an upper limit for successful travel time.  The delay
+further reduces the upper limit for successful travel time. The result is a speed map in both raster and polygon form.
+
+ingdb: Set this parameter to a geodatabase created for the current project.
+
+lc_scenario: Set this parameter to the scenario name used to identify the evacuation surface(s) for processing.
+
+time maps: Select the time maps to use in the creation of the speed map.
+
+Event arrival time: Set this parameter to the time in minutes when the hazard event is estimated to arrive in the
+study area.
+
+Delay: Set this parameter to the number of minutes it is estimated individuals will take before beginning to evacuate.
+
+
+################################
+# Create Vertical Evacuation Map
+################################
+
+Title: Step 2d (optional): Create Vertical Evacuation Map
+
+Tags: PEAT, evacuation, pedestrian, hazard
+
+Summary: This tool creates vertical evacuation maps from a base time map and input polygons of VE locations. The tool
+takes the selected base time map and goes through all the input VE polygons one at a time, merging each VE polygon
+with the original safe zone and creating new evacuation surfaces and time maps. Time maps are created for each
+individual VE polygon that is contained in a user-supplied layer. Developing a travel-time map that recognizes all
+VE polygons simultaneously requires a VE layer where multiple polygons are represented as a single multi-part polygon.
+These VE travel time maps are added to the Table of Contents pane with the same name as the base time map and
+"VE<number>" appended to the end.  The VE number is taken from the VE number field entered.
+
+Usage: Takes the selected base time map and goes through all the input VE polygons one at a time, merging each VE
+polygon with the original safe zone and creating new evacuation surfaces and time maps.
+
+ingdb: Set this parameter to a geodatabase created for the current project.
+
+lc_scenario: Set this parameter to the scenario name used to identify the evacuation surface(s) for processing.
+
+Base_map: Set this parameter to an existing time map to define the travel speed for the vertical evacuation time maps.
+
+VE_features: Set this parameter to the polygon feature class containing the locations of potential evacuation
+structures.
+
+VE_number_field: Set this parameter to the attribute in the VE features attribute table that contains unique
+integer identifiers for each VE structure.
+
+
+################################
+# Create Evacuation Basins
+################################
+
+Title: Step 3 (optional): Create Evacuation Basins
+
+Tags: PEAT, evacuation, pedestrian, hazard
+
+Summary: This tool creates the watersheds or basins for evacuation flow from the path distance raster generated by the
+Distance Accumulation tool.  It accepts a polyline feature class of the roads in the study area and creates a cost
+inverse raster, then runs Distance Accumulation.  The path distance raster output from the Distance Accumulation tool
+is input to the Flow Direction tool, creating the raster needed for flow accumulation.  Then Flow Accumulation is run
+to generate flowlines showing the natural flow of evacuees.  The Watersheds tool is also run to group each unique
+watershed (evacuation shed), identifying the streets that flow into the fastest paths to the safe zone.  If population
+points are entered, the counts of evacuees along each route will also be generated.
+
+Usage: Use this tool to identify the major evacuation paths along the roads in the study area and to determine the
+number of evacuees that are likely to be traveling along each evacuation route.
+
+ingdb: Set this parameter to a geodatabase created for the current project.
+
+roadlines: Set this parameter to a polyline feature class of the roads for evacuation
+
+pop_points: Set this parameter to a  point feature class of population locations
+
+pop_count: Set this parameter to a  column name in the attribute table that contains population counts for each point
+(this column can be either integer or decimal)
+
+
+################################
+# Delete Scenario
+################################
+
+Title: Delete Scenario
+
+Tags: PEAT, evacuation, pedestrian, hazard
+
+Summary: This optional tool can be used to delete all files (both feature and raster) associated with a scenario,
+including the Basin scenario.
+
+Usage: Deletes all files, folders, and geodatabase datasets associated with the selected scenario
+
+ingdb: Set this parameter to a geodatabase created for the current project.
+
+Scenario: Set this parameter to the scenario name to be deleted.
