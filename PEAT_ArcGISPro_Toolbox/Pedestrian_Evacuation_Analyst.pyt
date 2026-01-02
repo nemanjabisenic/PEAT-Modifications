@@ -2,41 +2,28 @@
 """
 Pedestrian_Evacuation_Analyst.pyt
 
-ArcGIS Pro Python toolbox wrapper for the PEAT v2.0.0 scripts.
+ArcGIS Pro Python toolbox wrapper for the PEAT v2 scripts (copied into the same folder).
 
-This toolbox intentionally does NOT implement an `isLicensed()` gate.
-ArcGIS Pro already manages licensing/extension availability; tools that require
-Spatial Analyst will fail naturally at runtime if the extension cannot be checked out.
+Design goals:
+- Be easy for ArcGIS Pro to load ("Add Toolbox…") by avoiding import-time failures.
+- Avoid any custom licensing gate (`isLicensed`) that blocks execution when Pro already
+  has the necessary licenses/extensions active.
 """
-
-from __future__ import annotations
 
 import os
 import sys
-from typing import Callable, List, Optional
 
 import arcpy
 
 
-# Ensure this folder is importable when Pro loads the toolbox.
-_TOOLBOX_DIR = os.path.dirname(__file__)
-if _TOOLBOX_DIR not in sys.path:
-    sys.path.insert(0, _TOOLBOX_DIR)
-
-
-# Tool entry points (functions) from the PEAT v2 scripts.
-from PreprocessDEM import preDEM
-from PreprocessHazard import preHazard
-from PreprocessLandCover import preLandCover
-from PreprocessSafezone import prepareSafezone
-from CreateEvacuationSurface import createEvacSurface
-from CreateTimeMap import genTimes
-from CreateSpeedMap import genSpeeds
-from CreateVertEvacMaps import createVertEvacs
-from CheckForTimeOutliers import checkForOutliers
-from CreateEvacuationBasins import createTheBasins
-from DeleteScenario import deleteTheScenario
-from addResultToMap import addLayerToMap
+def _ensure_toolbox_on_path():
+    """Make sure the toolbox folder is importable for subsequent imports."""
+    try:
+        toolbox_dir = os.path.dirname(__file__)
+    except Exception:
+        toolbox_dir = os.getcwd()
+    if toolbox_dir and toolbox_dir not in sys.path:
+        sys.path.insert(0, toolbox_dir)
 
 
 _OUTPUT_FLAG = {
@@ -48,8 +35,8 @@ _OUTPUT_FLAG = {
 }
 
 
-def _build_parameters(specs: List[dict]) -> List[arcpy.Parameter]:
-    params: List[arcpy.Parameter] = []
+def _build_parameters(specs):
+    params = []
     for spec in specs:
         param = arcpy.Parameter(
             displayName=spec["display"],
@@ -69,22 +56,36 @@ def _build_parameters(specs: List[dict]) -> List[arcpy.Parameter]:
 class _BasePEATTool(object):
     """Base class that handles parameter creation and execution."""
 
-    label: str = ""
-    description: str = ""
+    label = ""
+    description = ""
     canRunInBackground = False
-    _param_spec: List[dict] = []
-    _func: Callable[..., object]
-    _arg_count: int = 0
+    _param_spec = []
+    _func_name = ""
+    _module_name = ""
+    _arg_count = 0
 
-    def getParameterInfo(self) -> List[arcpy.Parameter]:
+    def getParameterInfo(self):
         return _build_parameters(self._param_spec)
 
-    def execute(self, parameters: List[arcpy.Parameter], messages) -> None:
+    def _load_func(self):
+        _ensure_toolbox_on_path()
+        mod = __import__(self._module_name, fromlist=[self._func_name])
+        return getattr(mod, self._func_name)
+
+    def execute(self, parameters, messages):
         args = [(p.valueAsText or "") for p in parameters[: self._arg_count]]
-        self._func(*args)
+        func = self._load_func()
+        func(*args)
         # If we include the derived output flag, mark success when no exception was raised.
         if parameters and parameters[-1].direction == "Output":
             parameters[-1].value = True
+
+    # Keep these no-ops for ArcGIS Pro compatibility.
+    def updateParameters(self, parameters):
+        return
+
+    def updateMessages(self, parameters):
+        return
 
 
 class Toolbox(object):
@@ -110,7 +111,8 @@ class Toolbox(object):
 class PreprocessDEMTool(_BasePEATTool):
     label = "Preprocess DEM"
     description = "Set up the project DEM and study area."
-    _func = preDEM
+    _module_name = "PreprocessDEM"
+    _func_name = "preDEM"
     _arg_count = 3
     _param_spec = [
         {"display": "Project Workspace (File GDB)", "name": "workspace", "type": "DEWorkspace"},
@@ -123,7 +125,8 @@ class PreprocessDEMTool(_BasePEATTool):
 class PreprocessHazardTool(_BasePEATTool):
     label = "Preprocess Hazard"
     description = "Project/clip hazard polygons and create a preliminary safe zone."
-    _func = preHazard
+    _module_name = "PreprocessHazard"
+    _func_name = "preHazard"
     _arg_count = 2
     _param_spec = [
         {"display": "Project Workspace (File GDB)", "name": "workspace", "type": "DEWorkspace"},
@@ -135,12 +138,15 @@ class PreprocessHazardTool(_BasePEATTool):
 class PreprocessLandCoverTool(_BasePEATTool):
     label = "Preprocess Landcover"
     description = "Create landcover cost inverse raster for a scenario."
-    _func = preLandCover
+    _module_name = "PreprocessLandCover"
+    _func_name = "preLandCover"
     _arg_count = 6
     _param_spec = [
         {"display": "Project Workspace (File GDB)", "name": "workspace", "type": "DEWorkspace"},
         {"display": "Scenario Name", "name": "scenario", "type": "GPString"},
-        {"display": "Base Landcover Layer", "name": "base_layer", "type": "GPVariant"},
+        # Use GPString here to avoid toolbox-load failures from ambiguous datatypes.
+        # The underlying script accepts a path or layer name.
+        {"display": "Base Landcover Layer (path/layer name)", "name": "base_layer", "type": "GPString"},
         {"display": "Base Landcover Field", "name": "base_field", "type": "GPString"},
         {"display": "Base Remap Values", "name": "base_values", "type": "GPString"},
         {"display": "Add-on Layers (optional)", "name": "addons", "type": "GPString", "parameterType": "Optional"},
@@ -151,7 +157,8 @@ class PreprocessLandCoverTool(_BasePEATTool):
 class PreprocessSafeZoneTool(_BasePEATTool):
     label = "Preprocess Safe Zone"
     description = "Validate/store the safe zone polygon and create a raster version."
-    _func = prepareSafezone
+    _module_name = "PreprocessSafezone"
+    _func_name = "prepareSafezone"
     _arg_count = 2
     _param_spec = [
         {"display": "Project Workspace (File GDB)", "name": "workspace", "type": "DEWorkspace"},
@@ -163,7 +170,8 @@ class PreprocessSafeZoneTool(_BasePEATTool):
 class CreateEvacuationSurfaceTool(_BasePEATTool):
     label = "Create Evacuation Surface"
     description = "Run Distance Accumulation and generate evacuation time surfaces for one or more walking speeds."
-    _func = createEvacSurface
+    _module_name = "CreateEvacuationSurface"
+    _func_name = "createEvacSurface"
     _arg_count = 3
     _param_spec = [
         {"display": "Project Workspace (File GDB)", "name": "workspace", "type": "DEWorkspace"},
@@ -176,7 +184,8 @@ class CreateEvacuationSurfaceTool(_BasePEATTool):
 class CreateTimeMapsTool(_BasePEATTool):
     label = "Create Time Maps"
     description = "Convert evacuation surfaces into integer raster and polygon time maps (optionally filled over buildings)."
-    _func = genTimes
+    _module_name = "CreateTimeMap"
+    _func_name = "genTimes"
     _arg_count = 4
     _param_spec = [
         {"display": "Project Workspace (File GDB)", "name": "workspace", "type": "DEWorkspace"},
@@ -190,14 +199,15 @@ class CreateTimeMapsTool(_BasePEATTool):
 class CreateSpeedMapTool(_BasePEATTool):
     label = "Create Speed Map"
     description = "Create raster and polygon speed maps from one or more time maps and an event arrival time."
-    _func = genSpeeds
+    _module_name = "CreateSpeedMap"
+    _func_name = "genSpeeds"
     _arg_count = 5
     _param_spec = [
         {"display": "Project Workspace (File GDB)", "name": "workspace", "type": "DEWorkspace"},
         {"display": "Scenario Name", "name": "scenario", "type": "GPString"},
         {"display": "Time Maps (semicolon-separated names)", "name": "time_maps", "type": "GPString"},
-        {"display": "Event Arrival Time (minutes)", "name": "arrival_time", "type": "GPString"},
-        {"display": "Delay Time (minutes, optional)", "name": "delay_time", "type": "GPString", "parameterType": "Optional"},
+        {"display": "Event Arrival Time (minutes)", "name": "arrival_time", "type": "GPLong"},
+        {"display": "Delay Time (minutes, optional)", "name": "delay_time", "type": "GPLong", "parameterType": "Optional"},
         _OUTPUT_FLAG,
     ]
 
@@ -205,7 +215,8 @@ class CreateSpeedMapTool(_BasePEATTool):
 class CreateVerticalEvacuationMapsTool(_BasePEATTool):
     label = "Create Vertical Evacuation Maps"
     description = "Create vertical evacuation time maps for each structure in an input VE feature class."
-    _func = createVertEvacs
+    _module_name = "CreateVertEvacMaps"
+    _func_name = "createVertEvacs"
     _arg_count = 5
     _param_spec = [
         {"display": "Project Workspace (File GDB)", "name": "workspace", "type": "DEWorkspace"},
@@ -220,7 +231,8 @@ class CreateVerticalEvacuationMapsTool(_BasePEATTool):
 class CheckForTimeOutliersTool(_BasePEATTool):
     label = "Check for Time Outliers"
     description = "Cap evacuation surface values above a maximum travel time threshold."
-    _func = checkForOutliers
+    _module_name = "CheckForTimeOutliers"
+    _func_name = "checkForOutliers"
     _arg_count = 3
     _param_spec = [
         {"display": "Project Workspace (File GDB)", "name": "workspace", "type": "DEWorkspace"},
@@ -233,7 +245,8 @@ class CheckForTimeOutliersTool(_BasePEATTool):
 class CreateEvacuationBasinsTool(_BasePEATTool):
     label = "Create Evacuation Basins"
     description = "Generate evacuation pour points, flow lines, and watershed boundaries using roads (and optional population)."
-    _func = createTheBasins
+    _module_name = "CreateEvacuationBasins"
+    _func_name = "createTheBasins"
     _arg_count = 4
     _param_spec = [
         {"display": "Project Workspace (File GDB)", "name": "workspace", "type": "DEWorkspace"},
@@ -247,7 +260,8 @@ class CreateEvacuationBasinsTool(_BasePEATTool):
 class DeleteScenarioTool(_BasePEATTool):
     label = "Delete Scenario"
     description = "Delete all stored outputs for the selected scenario."
-    _func = deleteTheScenario
+    _module_name = "DeleteScenario"
+    _func_name = "deleteTheScenario"
     _arg_count = 2
     _param_spec = [
         {"display": "Project Workspace (File GDB)", "name": "workspace", "type": "DEWorkspace"},
@@ -259,7 +273,8 @@ class DeleteScenarioTool(_BasePEATTool):
 class AddLayerToMapTool(_BasePEATTool):
     label = "Add Layer to Map (utility)"
     description = "Add an existing raster/feature layer to the current map with PEAT symbology (where available)."
-    _func = addLayerToMap
+    _module_name = "addResultToMap"
+    _func_name = "addLayerToMap"
     _arg_count = 3
     _param_spec = [
         {"display": "Project Workspace (File GDB)", "name": "workspace", "type": "DEWorkspace"},
