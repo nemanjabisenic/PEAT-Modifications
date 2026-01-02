@@ -1,0 +1,555 @@
+PEAT TOOL PARAMETERS
+
+##########################
+
+# Preprocess DEM
+
+##########################
+
+General
+
+Name: PreprocessDEM
+Label: Step 1a: Preprocess DEM
+Script file: PreprocessDEM.py
+
+Parameters
+
+Parm 0
+Label: Project geodatabase
+Name: ingdb
+Data Type: Workspace
+Type: Required
+Direction: Input
+Filter: Workspace, Local Database
+
+Parm 1
+Label: Elevation
+Name: elevation
+Data Type: Raster Layer
+Type: Required
+Direction: Input
+
+Parm 2
+Label: Study area (optional)
+Name: study_area
+Data Type: Feature Layer
+Type: Optional
+Direction: Input
+Filter: Feature Type, Polygon
+
+
+##########################
+
+# Preprocess Hazard
+
+##########################
+
+General
+
+Name: PreprocessHazard
+Label: Step 1b: Preprocess Hazard
+Script file: PreprocessHazard.py
+
+Parameters
+
+Parm 0
+Label: Project geodatabase
+Name: ingdb
+Data Type: Workspace
+Type: Required
+Direction: Input
+Filter: Workspace, Local Database
+
+Parm 1
+Label: Hazard zone
+Name: hazard_zone
+Data Type: Feature Layer
+Type: Required
+Direction: Input
+Filter: Feature Type, Polygon
+
+
+
+##########################
+
+# Preprocess Safezone
+
+##########################
+
+General
+
+Name: PreprocessSafezone
+Label: Step 1c: Preprocess Safezone
+Script file: PreprocessSafezone.py
+
+Parameters
+
+Parm 0
+Label: Project geodatabase
+Name: ingdb
+Data Type: Workspace
+Type: Required
+Direction: Input
+Filter: Workspace, Local Database
+
+Parm 1
+Label: Safe zone
+Name: safezone
+Data Type: Feature Layer
+Type: Required
+Direction: Input
+Filter: Feature Type, Polygon
+
+
+##########################
+
+# Preprocess Landcover
+
+##########################
+
+General
+
+Name: PreprocessLandcover
+Label: Step 1d: Preprocess Landcover
+Script file: PreprocessLandCover.py
+
+Parameters
+
+Parm 0
+Label: Project geodatabase
+Name: ingdb
+Data Type: Workspace
+Type: Required
+Direction: Input
+Filter: Workspace, Local Database
+
+Parm 1
+Label: Landcover scenario name
+Name: lc_scenario
+Data Type: String
+Type: Required
+Direction: Input
+
+Parm 2
+Label: Base landcover layer
+Name: base_layer
+Data Type: Feature Layer, Raster Layer
+Type: Required
+Direction: Input
+
+Parm 3:
+Label: Landcover field name
+Name: base_field
+Data Type: Field
+Type: Required
+Direction: Input
+Filter: Field, Long, Short, Text
+Dependency: base_layer
+
+Parm 4:
+Label: Base layer values
+Name: base_values
+Data Type: Value Table, Table of values, Column Name (Landcover class, String)
+                                         Column Name (SCV value, Double)
+Type: Required
+Direction: Input
+Filter: Value Table, Value Table Filter, Landcover class, Value list, Empty
+                                         SCV value, Range, 0 - 1
+Dependency: base_field
+
+Parm 5:
+Label: Additional feature layers
+Name: feat_layers
+Data Type: Value Table, Table of values,  Column Name (filename, Feature Layer)
+                                          Column Name (processing order, Long)
+                                          Column Name (SCV value, Double)
+Type: Optional
+Direction: Input
+Filter: Value Table, Value Table Filter, filename, polyline, polygon
+                                         layer type, Range: 1 - 10
+                                         SCV value, range, 0 - 1
+
+Parm 6:
+Label: Additional raster layers
+Name: ras_layers
+Data Type: Value Table, Table of values,  Column Name (filename, Raster Layer)
+                                          Column Name (processing order, Long)
+                                          Column Name (SCV value, Double)
+Type: Optional
+Direction: Input
+Filter: Value Table, Value Table Filter, filename (None),
+                                         layer type (Range: 1 - 10)
+                                         SCV value, range, 0 - 1
+
+
+##########################
+
+# Create Evacuation Surfaces
+
+##########################
+
+General
+
+Name: CreateEvacuationSurface
+Label: Step 2a: Create Evacuation Surface
+Script file: CreateEvacuationSurface.py
+
+Parameters
+
+Parm 0
+Label: Project geodatabase
+Name: ingdb
+Data Type: Workspace
+Type: Required
+Direction: Input
+Filter: Workspace, Local Database
+
+Parm 1
+Label: Landcover scenario name
+Name: lc_scenario
+Data Type: String
+Type: Required
+Direction: Input
+Filter: Value List, 'Empty' # filled in by validation code
+
+Parm 2
+Label: Travel speed values in meters per second
+Name: speed_values
+Data Type: Value Table, Multiple values, Double
+Type: Required
+Direction: Input
+Filter: Value Table, Value Table Filter, Range, 0 - 500
+
+##########################
+
+# Check for Time Outliers
+
+##########################
+
+
+General
+
+Name: CheckForTimeOutliers
+Label: Step 2b (optional): Check for Time Outliers
+Script file: CheckForTimeOutliers.py
+
+Parameters
+
+Parm 0
+Label: Project geodatabase
+Name: ingdb
+Data Type: Workspace
+Type: Required
+Direction: Input
+Filter: Workspace, Local Database
+
+Parm 1
+Label: Landcover scenario name
+Name: lc_scenario
+Data Type: String
+Type: Required
+Direction: Input
+Filter: Value List, 'Empty'
+
+Parm 2
+Label: Maximum times
+Name: maxtimes
+Data Type: Value table, Table of Values, Evacuation surface, String, Maximum valid time, Double
+Type: required
+Direction: Input
+Filter: Value Table, Evacuation surface, Value list, Empty; Maximum valid time, Range, 0 - 1000000
+Dependency: lc_scenario
+
+
+##########################
+
+# Create Time Maps
+
+##########################
+
+General
+
+Name: CreateTimeMaps
+Label: Step 2c: Create Time Map
+Script file: CreateTimeMap.py
+
+Parameters
+
+Parm 0
+Label: Project geodatabase
+Name: ingdb
+Data Type: Workspace
+Type: Required
+Direction: Input
+Filter: Workspace, Local Database
+
+Parm 1
+Label: Landcover scenario name
+Name: lc_scenario
+Data Type: String
+Type: Required
+Direction: Input
+Filter: Value List, 'Empty'
+
+Parm 2
+Label: Evacuation surfaces
+Name: evacs
+Data Type: String, Multiple values,
+Type: required
+Direction: Input
+Filter: Value List, 'Empty' # filled in by validation code
+Dependency: lc_scenario
+
+Parm 3
+Label: Buildings for fill (optional)
+Name: buildings
+Data Type: Feature Layer
+Type: Optional
+Direction: Input
+Filter: Feature Type, polygon
+
+
+##########################
+
+# Create Speed Map
+
+##########################
+
+General
+
+Name: CreateSpeedMap
+Label: Step 2e (optional): Create Speed Map
+Script file: CreateSpeedMap.py
+
+Parameters
+
+Parm 0
+Label: Project geodatabase
+Name: ingdb
+Data Type: Workspace
+Type: Required
+Direction: Input
+Filter: Workspace, Local Database
+
+Parm 1
+Label: Landcover scenario name
+Name: lc_scenario
+Data Type: String
+Type: Required
+Direction: Input
+Filter: Value List, 'Empty' # filled in by validation code
+Dependency: ingdb
+
+Parm 2
+Label: Time maps
+Name: time_maps
+Data Type: String, Multiple values,
+Type: required
+Direction: Input
+Filter: Value List, 'Empty' # filled in by validation code
+Dependency:
+
+Parm 3
+Label: Event arrival time in minutes
+Name: arrival
+Data Type: Long
+Type: Required
+Direction: Input
+Filter: Range, 1 - 100000
+
+Parm 4
+Label: Delay in minutes (optional)
+Name: delay
+Data Type: Long
+Type: Ooptional
+Direction: Input
+Filter: Range, 0 - 100000
+
+
+##########################
+
+# Create Vertical Evacuation Maps
+
+##########################
+
+General
+
+Name: CreateVertEvacMap
+Label: Step 2d (optional): Create Vertical Evacuation Map
+Script file: CreateVertEvacMaps.py
+
+Parameters
+
+Parm 0
+Label: Project geodatabase
+Name: ingdb
+Data Type: Workspace
+Type: Required
+Direction: Input
+Filter: Workspace, Local Database
+
+Parm 1
+Label: Landcover scenario name
+Name: lc_scenario
+Data Type: String
+Type: Required
+Direction: Input
+Filter: Value List, 'Empty' # filled in by validation code
+
+Parm 2
+Label: Base time map
+Name: Base_map
+Data Type: String
+Type: required
+Direction: Input
+Filter: Value List, 'Empty' # filled in by validation code
+
+Parm 3
+Label: VE features
+Name: VE_features
+Data Type: Feature layer
+Type: Required
+Direction: Input
+Filter: Feature Type, polygon
+
+Parm 4
+Label: VE number field
+Name: VE_number_field
+Data Type: Field
+Type: Required
+Direction: Input
+Filter: Field, Short, Long
+Dependency: VE_features
+
+##########################
+
+# Create Evacuation Basins
+
+##########################
+
+General
+
+Name: CreateEvacuationBasins
+Label: Step 3 (optional): Create Evacuation Basins
+Script file: CreateEvacuationBasins.py
+
+Parameters
+
+Parm 0
+Label: Project geodatabase
+Name: ingdb
+Data Type: Workspace
+Type: Required
+Direction: Input
+Filter: Workspace, Local Database
+
+Parm 1
+Label: Roadlines
+Name: roadlines
+Data Type: Feature Layer
+Type: Required
+Direction: Input
+Filter: Feature Type, polyline
+
+Parm 2
+Label: Population points (optional)
+Name: pop_points
+Data Type: Feature Layer
+Type: Optional
+Direction: Input
+Filter: Feature Type, point
+
+Parm 3
+Label: Population count (optional)
+Name: pop_count
+Data Type: Field
+Type: Optional
+Direction: Input
+Filter: Field, Long, Short, Float, Double
+Dependency: pop_points
+
+
+##########################
+
+# Delete Scenario
+
+##########################
+
+General
+
+Name: Delete Scenario
+Label: Utilities: Delete Scenario
+Script file: DeleteScenario.py
+
+Parameters
+
+Parm 0
+Label: Project geodatabase
+Name: ingdb
+Data Type: Workspace
+Type: Required
+Direction: Input
+Filter: Workspace, Local Database
+
+Parm 1
+Label: Scenario name
+Name: scenario
+Data Type: String
+Type: Required
+Direction: Input
+Filter: Value List, 'Empty' # filled in by validation code
+
+
+##########################
+
+# Add Result to Map - no longer in toolbox !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+##########################
+
+General
+
+Name: AddResultToMap
+Label: Add Result To Map
+Script file: AddResultToMap.py
+
+Parameters
+
+Parm 0
+Label: Project geodatabase
+Name: ingdb
+Data Type: Workspace
+Type: Required
+Direction: Input
+Filter: Workspace, Local Database
+
+Parm 1
+Label: Scenario name
+Name: scenario
+Data Type: String
+Type: Required
+Direction: Input
+Filter: Value List, 'Empty' # filled in by validation code
+
+Parm 2
+Label: PEAT file type
+Name: PEAT_type
+Data Type: String, multiple values
+Type: required
+Direction: Input
+Filter: Value List, 'cost_inverse raster','evac_surface raster','time_map raster','speed_map raster',
+        'time_map feature','speed_map feature','pourpoints feature','flowlines feature','watersheds feature'
+
+Parm 3
+Label: Display layers
+Name: displaylayers
+Data Type: String, multiple values
+Type: Required
+Direction: Input
+Filter: Value list, Empty, to be filled in during validation
+
+
+
+
+
+
+

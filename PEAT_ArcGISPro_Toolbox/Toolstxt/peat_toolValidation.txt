@@ -1,0 +1,545 @@
+#
+# This file contains the record of the validation code used for each tool in the PEAT toolbox
+#
+
+##################
+
+# Preprocess DEM validation
+
+##################
+
+None
+
+
+##################
+
+# Preprocess Hazard validation
+
+##################
+
+None
+
+
+##################
+
+# Preprocess Safezone
+
+##################
+
+None
+
+##################
+
+# Preprocess Landcover
+
+##################
+
+class ToolValidator:
+  # Class to add custom behavior and properties to the tool and tool parameters.
+
+    def __init__(self):
+        # set self.params for use in other function
+        self.params = arcpy.GetParameterInfo()
+
+    def initializeParameters(self):
+        # Customize parameter properties. 
+        # This gets called when the tool is opened.
+        return
+
+    def updateParameters(self):
+        # Modify parameter values and properties.
+        if self.params[2].valueAsText:
+            if self.params[3].value:
+                infield = self.params[3].valueAsText
+                invals = []
+                with arcpy.da.SearchCursor(self.params[2].valueAsText,[infield]) as cursor:
+                    for row in cursor:
+                        invals.append(str(row[0]))
+                self.params[4].filters[0].list = sorted(list(set(invals)))
+        return
+
+    def updateMessages(self):
+        # Customize messages for the parameters.
+        # This gets called after standard validation.
+        return
+
+    # def isLicensed(self):
+    #     # set tool isLicensed.
+    # return True
+
+    # def postExecute(self):
+    #     # This method takes place after outputs are processed and
+    #     # added to the display.
+    # return
+
+##################
+
+# Create Evacuation Surfaces
+
+##################
+
+import os
+class ToolValidator:
+  # Class to add custom behavior and properties to the tool and tool parameters.
+
+    def __init__(self):
+        # set self.params for use in other function
+        self.params = arcpy.GetParameterInfo()
+
+    def initializeParameters(self):
+        # Customize parameter properties.
+        # This gets called when the tool is opened.
+        return
+
+    def updateParameters(self):
+        # Modify parameter values and properties.
+        # This gets called each time a parameter is modified, before
+        # standard validation.
+        if self.params[0].value:
+            ingdb = self.params[0].value.value
+
+            # Get the names of current scenarios
+            scenariolist = []
+            toppath = os.path.dirname(ingdb)
+            gdbname = os.path.basename(ingdb).replace(".gdb","")
+            foldername = os.path.join(toppath,"{0}_rasters".format(gdbname))
+            for root,dirs,allfiles in os.walk(foldername):
+                for name in allfiles:
+                    if name.count("lc_cost_inverse") and name.endswith("tif") and not name.count("PEATbasin"):
+                        scenariolist.append(filename.replace("lc_cost_inverse_","").replace(".tif",""))
+
+            self.params[1].filter.list = scenariolist
+
+        return
+
+    def updateMessages(self):
+        # Customize messages for the parameters.
+        # This gets called after standard validation.
+        return
+
+    # def isLicensed(self):
+    #     # set tool isLicensed.
+    # return True
+
+    # def postExecute(self):
+    #     # This method takes place after outputs are processed and
+    #     # added to the display.
+    # return
+
+##################
+
+# Check for Time Outliers
+
+##################
+
+import os, glob
+class ToolValidator:
+  # Class to add custom behavior and properties to the tool and tool parameters.
+
+    def __init__(self):
+        # set self.params for use in other function
+        self.params = arcpy.GetParameterInfo()
+
+    def initializeParameters(self):
+        # Customize parameter properties.
+        # This gets called when the tool is opened.
+        return
+
+    def updateParameters(self):
+        # Modify parameter values and properties.
+        # This gets called each time a parameter is modified, before
+        # standard validation.
+        if self.params[0].value:
+            ingdb = self.params[0].value.value
+            scenariolist = []
+            toppath = os.path.dirname(ingdb)
+            gdbname = os.path.basename(ingdb).replace(".gdb","")
+            foldername = os.path.join(toppath,"{0}_rasters".format(gdbname))
+            for root,dirs,allfiles in os.walk(foldername):
+                for name in allfiles:
+                    if name.count("lc_cost_inverse") and name.endswith("tif") and not name.count("PEATbasin"):
+                        scenariolist.append(name.replace("lc_cost_inverse_","").replace(".tif",""))
+
+            self.params[1].filter.list = scenariolist
+
+        if self.params[1].value:
+            scenario = self.params[1].valueAsText
+            evaclist = []
+            toppath = os.path.dirname(ingdb)
+            gdbname = os.path.basename(ingdb).replace(".gdb","")
+            foldername = os.path.join(toppath,"{0}_rasters".format(gdbname))
+            for root,dirs,allfiles in os.walk(foldername):
+                for name in allfiles:
+                    if name.count("evac_surface") and name.count(scenario) and name.endswith("tif"):
+                        evaclist.append(name.replace(".tif",""))
+
+            self.params[2].filters[0].list = evaclist
+
+        return
+
+    def updateMessages(self):
+        # Customize messages for the parameters.
+        # This gets called after standard validation.
+        return
+
+    # def isLicensed(self):
+    #     # set tool isLicensed.
+    # return True
+
+    # def postExecute(self):
+    #     # This method takes place after outputs are processed and
+    #     # added to the display.
+    # return
+
+##################
+
+# Create Time Maps
+
+##################
+
+import os, glob
+class ToolValidator:
+  # Class to add custom behavior and properties to the tool and tool parameters.
+
+    def __init__(self):
+        # set self.params for use in other function
+        self.params = arcpy.GetParameterInfo()
+
+    def initializeParameters(self):
+        # Customize parameter properties.
+        # This gets called when the tool is opened.
+        return
+
+    def updateParameters(self):
+        # Modify parameter values and properties.
+        # This gets called each time a parameter is modified, before
+        # standard validation.
+        if self.params[0].value:
+            ingdb = self.params[0].value.value
+            scenariolist = []
+            toppath = os.path.dirname(ingdb)
+            gdbname = os.path.basename(ingdb).replace(".gdb","")
+            foldername = os.path.join(toppath,"{0}_rasters".format(gdbname))
+            for root,dirs,allfiles in os.walk(foldername):
+                for name in allfiles:
+                    if name.count("lc_cost_inverse") and name.endswith("tif") and not name.count("PEATbasin"):
+                        scenariolist.append(name.replace("lc_cost_inverse_","").replace(".tif",""))
+
+            self.params[1].filter.list = scenariolist
+
+        if self.params[1].value:
+            scenario = self.params[1].valueAsText
+            evaclist = []
+            toppath = os.path.dirname(ingdb)
+            gdbname = os.path.basename(ingdb).replace(".gdb","")
+            foldername = os.path.join(toppath,"{0}_rasters".format(gdbname))
+            evacfolder = os.path.join(foldername,scenario,'evacsurf')
+            os.chdir(evacfolder)
+            rasterlist = glob.glob("evac_surface_{0}*.tif".format(scenario))
+            for filename in rasterlist:
+                evaclist.append(filename.replace(".tif",""))
+
+            self.params[2].filter.list = evaclist
+
+        return
+
+    def updateMessages(self):
+        # Customize messages for the parameters.
+        # This gets called after standard validation.
+        return
+
+    # def isLicensed(self):
+    #     # set tool isLicensed.
+    # return True
+
+    # def postExecute(self):
+    #     # This method takes place after outputs are processed and
+    #     # added to the display.
+    # return
+
+  ##################
+
+  # Create Speed Maps
+
+  ##################
+
+import os, glob
+class ToolValidator:
+  # Class to add custom behavior and properties to the tool and tool parameters.
+
+    def __init__(self):
+        # set self.params for use in other function
+        self.params = arcpy.GetParameterInfo()
+
+    def initializeParameters(self):
+        # Customize parameter properties.
+        # This gets called when the tool is opened.
+        return
+
+    def updateParameters(self):
+        # Modify parameter values and properties.
+        # This gets called each time a parameter is modified, before
+        # standard validation.
+        if self.params[0].value:
+            ingdb = self.params[0].value.value
+            scenariolist = []
+            toppath = os.path.dirname(ingdb)
+            gdbname = os.path.basename(ingdb).replace(".gdb","")
+            foldername = os.path.join(toppath,"{0}_rasters".format(gdbname))
+            for root,dirs,allfiles in os.walk(foldername):
+                for name in allfiles:
+                    if name.count("lc_cost_inverse") and name.endswith("tif") and not name.count("PEATbasin"):
+                        scenariolist.append(name.replace("lc_cost_inverse_","").replace(".tif",""))
+
+            self.params[1].filter.list = scenariolist
+
+        if self.params[1].value:
+            scenario = self.params[1].valueAsText
+            evacall = []
+            evaclist = []
+            toppath = os.path.dirname(ingdb)
+            gdbname = os.path.basename(ingdb).replace(".gdb","")
+            foldername = os.path.join(toppath,"{0}_rasters".format(gdbname))
+            timefolder = os.path.join(foldername,scenario,'timemap')
+            os.chdir(timefolder)
+            rasterlist = glob.glob("time_map*{0}*.tif".format(scenario))
+            for filename in rasterlist:
+                evacall.append(filename.replace(".tif",""))
+
+            # If filled rasters were created, just use these for speed maps
+            evacfill = [name for name in evacall if name.count('fill')]
+            if len(evacfill) > 0:
+                evaclist = evacfill
+            else:
+                evaclist = evacall
+
+            self.params[2].filter.list = evaclist
+
+        return
+
+    def updateMessages(self):
+        # Customize messages for the parameters.
+        # This gets called after standard validation.
+        return
+
+    # def isLicensed(self):
+    #     # set tool isLicensed.
+    # return True
+
+    # def postExecute(self):
+    #     # This method takes place after outputs are processed and
+    #     # added to the display.
+    # return
+
+  ##################
+
+  # Create Vertical Evacuation Map
+
+  ##################
+
+import os, glob
+class ToolValidator:
+  # Class to add custom behavior and properties to the tool and tool parameters.
+
+    def __init__(self):
+        # set self.params for use in other function
+        self.params = arcpy.GetParameterInfo()
+
+    def initializeParameters(self):
+        # Customize parameter properties.
+        # This gets called when the tool is opened.
+        return
+
+    def updateParameters(self):
+        # Modify parameter values and properties.
+        # This gets called each time a parameter is modified, before
+        # standard validation.
+        if self.params[0].value:
+            ingdb = self.params[0].value.value
+            scenariolist = []
+            toppath = os.path.dirname(ingdb)
+            gdbname = os.path.basename(ingdb).replace(".gdb","")
+            foldername = os.path.join(toppath,"{0}_rasters".format(gdbname))
+            for root,dirs,allfiles in os.walk(foldername):
+                for name in allfiles:
+                    if name.count("lc_cost_inverse") and name.endswith("tif") and not name.count("PEATbasin"):
+                        scenariolist.append(name.replace("lc_cost_inverse_","").replace(".tif",""))
+
+            self.params[1].filter.list = scenariolist
+
+        if self.params[1].value:
+            scenario = self.params[1].valueAsText
+            evacall = []
+            evaclist = []
+            toppath = os.path.dirname(ingdb)
+            gdbname = os.path.basename(ingdb).replace(".gdb","")
+            foldername = os.path.join(toppath,"{0}_rasters".format(gdbname))
+            timefolder = os.path.join(foldername,scenario,'timemap')
+            os.chdir(timefolder)
+            rasterlist = glob.glob("time_map*{0}*.tif".format(scenario))
+            for filename in rasterlist:
+                evacall.append(filename.replace(".tif",""))
+
+            # If filled rasters were created, just use these for speed maps
+            evacfill = [name for name in evacall if name.count('fill')]
+            if len(evacfill) > 0:
+                evaclist = evacfill
+            else:
+                evaclist = evacall
+
+            self.params[2].filter.list = evaclist
+
+        return
+
+    def updateMessages(self):
+        # Customize messages for the parameters.
+        # This gets called after standard validation.
+        return
+
+    # def isLicensed(self):
+    #     # set tool isLicensed.
+    # return True
+
+    # def postExecute(self):
+    #     # This method takes place after outputs are processed and
+    #     # added to the display.
+    # return
+
+
+##################
+
+# Create Evacuation Basins
+
+##################
+
+None
+
+##################
+
+# Delete Scenario
+
+##################
+
+import os
+class ToolValidator:
+  # Class to add custom behavior and properties to the tool and tool parameters.
+
+    def __init__(self):
+        # set self.params for use in other function
+        self.params = arcpy.GetParameterInfo()
+
+    def initializeParameters(self):
+        # Customize parameter properties.
+        # This gets called when the tool is opened.
+        return
+
+    def updateParameters(self):
+        # Modify parameter values and properties.
+        # This gets called each time a parameter is modified, before
+        # standard validation.
+        if self.params[0].value:
+            ingdb = self.params[0].value.value
+
+            # Get the names of current scenarios
+            scenariolist = []
+            toppath = os.path.dirname(ingdb)
+            gdbname = os.path.basename(ingdb).replace(".gdb","")
+            foldername = os.path.join(toppath,"{0}_rasters".format(gdbname))
+            for root,dirs,allfiles in os.walk(foldername):
+                for name in allfiles:
+                    if name.count("lc_cost_inverse") and name.endswith("tif"):
+                        scenariolist.append(name.replace("lc_cost_inverse_","").replace(".tif",""))
+
+            self.params[1].filter.list = scenariolist
+
+        return
+
+    def updateMessages(self):
+        # Customize messages for the parameters.
+        # This gets called after standard validation.
+        return
+
+    # def isLicensed(self):
+    #     # set tool isLicensed.
+    # return True
+
+    # def postExecute(self):
+    #     # This method takes place after outputs are processed and
+    #     # added to the display.
+    # return
+
+##################
+
+  # Add Result To Map - not currently in toolbox, still with some bugs
+
+  ##################
+
+    class ToolValidator:
+      # Class to add custom behavior and properties to the tool and tool parameters.
+
+        def __init__(self):
+            # set self.params for use in other function
+            self.params = arcpy.GetParameterInfo()
+
+        def initializeParameters(self):
+            # Customize parameter properties.
+            # This gets called when the tool is opened.
+            return
+
+        def updateParameters(self):
+            # Modify parameter values and properties.
+            # This gets called each time a parameter is modified, before
+            # standard validation.
+        if self.params[0].value:
+            ingdb = self.params[0].value.value
+
+            # Get the names of current scenarios along with PEATbasin name
+            scenariolist = []
+            toppath = os.path.dirname(ingdb)
+            gdbname = os.path.basename(ingdb).replace(".gdb","")
+            foldername = os.path.join(toppath,"{0}_rasters".format(gdbname))
+            for root,dirs,allfiles in os.walk(foldername):
+                for name in allfiles:
+                    if name.count("lc_cost_inverse") and name.endswith("tif"):
+                        scenariolist.append(name.replace("lc_cost_inverse_","").replace(".tif",""))
+
+            self.params[1].filter.list = scenariolist
+
+        if self.params[1].value:
+            scenario = self.params[1].valueAsText
+
+        if self.params[2].value:
+            peattype = self.params[2].valueAsText
+
+            alllayers = []
+
+            if peattype.count('feature'):
+                for dirpath,dirnames,filenames in arcpy.da.Walk(ingdb):
+                    for filename in filenames:
+                        if filename.count(scenario) and filename.count(peattype.replace(' feature','')):
+                            alllayers.append(filename)
+                        else:
+                            alllayers.append("no file found")
+            else:
+                for root,dirs,allfiles in os.walk(foldername):
+                    for name in allfiles:
+                        if name.count(scenario) and name.count(peattype.replace(' raster','')) and name.endswith("tif"):
+                            alllayers.append(name.replace(".tif",""))
+
+
+            self.params[3].filter.list = alllayers
+            return
+
+        def updateMessages(self):
+            # Customize messages for the parameters.
+            # This gets called after standard validation.
+            return
+
+        # def isLicensed(self):
+        #     # set tool isLicensed.
+        # return True
+
+        # def postExecute(self):
+        #     # This method takes place after outputs are processed and
+        #     # added to the display.
+        # return
